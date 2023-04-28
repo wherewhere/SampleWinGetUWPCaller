@@ -36,58 +36,44 @@ namespace winrt::AppInstallerCaller::WinRT::implementation
     {
         if (useDev)
         {
-            return winrt::create_instance<PackageManager>(CLSID_PackageManager2, CLSCTX_ALL);
+            return winrt::try_create_instance<PackageManager>(CLSID_PackageManager2, CLSCTX_ALL);
         }
-        return winrt::create_instance<PackageManager>(CLSID_PackageManager, CLSCTX_ALL);
+        return winrt::try_create_instance<PackageManager>(CLSID_PackageManager, CLSCTX_ALL);
     }
 
     InstallOptions WinGetProjectionFactory::CreateInstallOptions(bool useDev)
     {
         if (useDev)
         {
-            return winrt::create_instance<InstallOptions>(CLSID_InstallOptions2, CLSCTX_ALL);
+            return winrt::try_create_instance<InstallOptions>(CLSID_InstallOptions2, CLSCTX_ALL);
         }
-        return winrt::create_instance<InstallOptions>(CLSID_InstallOptions, CLSCTX_ALL);
+        return winrt::try_create_instance<InstallOptions>(CLSID_InstallOptions, CLSCTX_ALL);
     }
 
     FindPackagesOptions WinGetProjectionFactory::CreateFindPackagesOptions(bool useDev)
     {
         if (useDev)
         {
-            return winrt::create_instance<FindPackagesOptions>(CLSID_FindPackagesOptions2, CLSCTX_ALL);
+            return winrt::try_create_instance<FindPackagesOptions>(CLSID_FindPackagesOptions2, CLSCTX_ALL);
         }
-        return winrt::create_instance<FindPackagesOptions>(CLSID_FindPackagesOptions, CLSCTX_ALL);
+        return winrt::try_create_instance<FindPackagesOptions>(CLSID_FindPackagesOptions, CLSCTX_ALL);
     }
 
     CreateCompositePackageCatalogOptions WinGetProjectionFactory::CreateCreateCompositePackageCatalogOptions(bool useDev)
     {
         if (useDev)
         {
-            return winrt::create_instance<CreateCompositePackageCatalogOptions>(CLSID_CreateCompositePackageCatalogOptions2, CLSCTX_ALL);
+            return winrt::try_create_instance<CreateCompositePackageCatalogOptions>(CLSID_CreateCompositePackageCatalogOptions2, CLSCTX_ALL);
         }
-        return winrt::create_instance<CreateCompositePackageCatalogOptions>(CLSID_CreateCompositePackageCatalogOptions, CLSCTX_ALL);
+        return winrt::try_create_instance<CreateCompositePackageCatalogOptions>(CLSID_CreateCompositePackageCatalogOptions, CLSCTX_ALL);
     }
 
     PackageMatchFilter WinGetProjectionFactory::CreatePackageMatchFilter(bool useDev)
     {
         if (useDev)
         {
-            return winrt::create_instance<PackageMatchFilter>(CLSID_PackageMatchFilter2, CLSCTX_ALL);
+            return winrt::try_create_instance<PackageMatchFilter>(CLSID_PackageMatchFilter2, CLSCTX_ALL);
         }
-        return winrt::create_instance<PackageMatchFilter>(CLSID_PackageMatchFilter, CLSCTX_ALL);
-    }
-
-    IAsyncOperation<bool> WinGetProjectionFactory::GetPackageCatalog()
-    {
-        PackageManager packageManager = CreatePackageManager(false);
-
-        PackageCatalogReference installedSearchCatalogRef{ nullptr };
-
-        installedSearchCatalogRef = packageManager.GetLocalPackageCatalog(LocalPackageCatalog::InstalledPackages);
-
-        ConnectResult connectResult{ co_await installedSearchCatalogRef.ConnectAsync() };
-        PackageCatalog installedCatalog = connectResult.PackageCatalog();
-
-        co_return installedCatalog != nullptr;
+        return winrt::try_create_instance<PackageMatchFilter>(CLSID_PackageMatchFilter, CLSCTX_ALL);
     }
 }

@@ -20,8 +20,6 @@ namespace winrt::AppInstallerCaller::WinRT::implementation
         CreateCompositePackageCatalogOptions CreateCreateCompositePackageCatalogOptions(bool useDev);
         PackageMatchFilter CreatePackageMatchFilter(bool useDev);
 
-        IAsyncOperation<bool> GetPackageCatalog();
-
     private:
         static AppInstallerCaller::WinRT::WinGetProjectionFactory instance;
     };

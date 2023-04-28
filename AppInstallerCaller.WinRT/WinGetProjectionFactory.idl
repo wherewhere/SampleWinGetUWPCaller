@@ -12,7 +12,5 @@ namespace AppInstallerCaller.WinRT
         Microsoft.Management.Deployment.FindPackagesOptions CreateFindPackagesOptions(Boolean useDev);
         Microsoft.Management.Deployment.CreateCompositePackageCatalogOptions CreateCreateCompositePackageCatalogOptions(Boolean useDev);
         Microsoft.Management.Deployment.PackageMatchFilter CreatePackageMatchFilter(Boolean useDev);
-
-        Windows.Foundation.IAsyncOperation<Boolean> GetPackageCatalog();
     }
 }
