@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.Foundation;
-using Windows.Security.Authorization.AppCapabilityAccess;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
@@ -23,7 +22,6 @@ namespace AppInstallerCaller
         public MainPage()
         {
             InitializeComponent();
-
             PackageCatalogs = new ObservableCollection<PackageCatalogReference>();
             InstalledApps = new ObservableCollection<CatalogPackage>();
             InstallingPackages = new ObservableCollection<InstallingPackageView>();

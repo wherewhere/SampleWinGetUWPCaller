@@ -16,9 +16,11 @@ namespace winrt::AppInstallerCaller::WinRT::implementation
 
         PackageManager CreatePackageManager(bool useDev);
         InstallOptions CreateInstallOptions(bool useDev);
+        UninstallOptions CreateUninstallOptions(bool useDev);
         FindPackagesOptions CreateFindPackagesOptions(bool useDev);
         CreateCompositePackageCatalogOptions CreateCreateCompositePackageCatalogOptions(bool useDev);
         PackageMatchFilter CreatePackageMatchFilter(bool useDev);
+        PackageManagerSettings CreatePackageManagerSettings();
 
     private:
         static AppInstallerCaller::WinRT::WinGetProjectionFactory instance;

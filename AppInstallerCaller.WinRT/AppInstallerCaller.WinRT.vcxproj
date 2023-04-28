@@ -99,7 +99,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
-      <ModuleDefinitionFile>AppInstallerCaller_WinRT.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>AppInstallerCaller.WinRT.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
@@ -135,7 +135,7 @@
     <Midl Include="WinGetProjectionFactory.idl" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="AppInstallerCaller_WinRT.def" />
+    <None Include="AppInstallerCaller.WinRT.def" />
     <None Include="packages.config" />
     <None Include="PropertySheet.props" />
   </ItemGroup>
