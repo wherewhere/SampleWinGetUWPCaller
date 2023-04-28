@@ -27,19 +27,19 @@ namespace AppInstallerCaller
             InstallingPackages = new ObservableCollection<InstallingPackageView>();
         }
 
-        private PackageManager CreatePackageManager() => WinGetProjectionFactory.Instance.CreatePackageManager(m_useDev);
+        private PackageManager TryCreatePackageManager() => WinGetProjectionFactory.Instance.TryCreatePackageManager(m_useDev);
 
-        private InstallOptions CreateInstallOptions() => WinGetProjectionFactory.Instance.CreateInstallOptions(m_useDev);
+        private InstallOptions TryCreateInstallOptions() => WinGetProjectionFactory.Instance.TryCreateInstallOptions(m_useDev);
 
-        private FindPackagesOptions CreateFindPackagesOptions() => WinGetProjectionFactory.Instance.CreateFindPackagesOptions(m_useDev);
+        private FindPackagesOptions TryCreateFindPackagesOptions() => WinGetProjectionFactory.Instance.TryCreateFindPackagesOptions(m_useDev);
 
-        private CreateCompositePackageCatalogOptions CreateCreateCompositePackageCatalogOptions() => WinGetProjectionFactory.Instance.CreateCreateCompositePackageCatalogOptions(m_useDev);
+        private CreateCompositePackageCatalogOptions TryCreateCreateCompositePackageCatalogOptions() => WinGetProjectionFactory.Instance.TryCreateCreateCompositePackageCatalogOptions(m_useDev);
 
-        private PackageMatchFilter CreatePackageMatchFilter() => WinGetProjectionFactory.Instance.CreatePackageMatchFilter(m_useDev);
+        private PackageMatchFilter TryCreatePackageMatchFilter() => WinGetProjectionFactory.Instance.TryCreatePackageMatchFilter(m_useDev);
 
         private async Task<PackageCatalog> FindSourceAsync(string packageSource)
         {
-            PackageManager packageManager = CreatePackageManager();
+            PackageManager packageManager = TryCreatePackageManager();
             PackageCatalogReference catalogRef = packageManager.GetPackageCatalogByName(packageSource);
             if (catalogRef != null)
             {
@@ -53,8 +53,8 @@ namespace AppInstallerCaller
 
         private async Task<FindPackagesResult> TryFindPackageInCatalogAsync(PackageCatalog catalog, string packageId)
         {
-            FindPackagesOptions findPackagesOptions = CreateFindPackagesOptions();
-            PackageMatchFilter filter = CreatePackageMatchFilter();
+            FindPackagesOptions findPackagesOptions = TryCreateFindPackagesOptions();
+            PackageMatchFilter filter = TryCreatePackageMatchFilter();
             filter.Field = PackageMatchField.Id;
             filter.Option = PackageFieldMatchOption.Equals;
             filter.Value = packageId;
@@ -64,8 +64,8 @@ namespace AppInstallerCaller
 
         private async Task<CatalogPackage> FindPackageInCatalogAsync(PackageCatalog catalog, string packageId)
         {
-            FindPackagesOptions findPackagesOptions = CreateFindPackagesOptions();
-            PackageMatchFilter filter = CreatePackageMatchFilter();
+            FindPackagesOptions findPackagesOptions = TryCreateFindPackagesOptions();
+            PackageMatchFilter filter = TryCreatePackageMatchFilter();
             filter.Field = PackageMatchField.Id;
             filter.Option = PackageFieldMatchOption.Equals;
             filter.Value = packageId;
@@ -78,8 +78,8 @@ namespace AppInstallerCaller
 
         private IAsyncOperationWithProgress<InstallResult, InstallProgress> InstallPackage(CatalogPackage package)
         {
-            PackageManager packageManager = CreatePackageManager();
-            InstallOptions installOptions = CreateInstallOptions();
+            PackageManager packageManager = TryCreatePackageManager();
+            InstallOptions installOptions = TryCreateInstallOptions();
 
             // Passing PackageInstallScope::User causes the install to fail if there's no installer that supports that.
             installOptions.PackageInstallScope = PackageInstallScope.Any;
@@ -190,7 +190,7 @@ namespace AppInstallerCaller
         {
             await ThreadSwitcher.ResumeBackgroundAsync();
 
-            PackageManager packageManager = CreatePackageManager();
+            PackageManager packageManager = TryCreatePackageManager();
             List<PackageCatalogReference> catalogs = packageManager.GetPackageCatalogs().ToList();
             PackageCatalogReference storeCatalog = packageManager.GetPredefinedPackageCatalog(PredefinedPackageCatalog.MicrosoftStore);
 
@@ -211,7 +211,7 @@ namespace AppInstallerCaller
             int selectedIndex = catalogsListBox.SelectedIndex;
             await ThreadSwitcher.ResumeBackgroundAsync();
 
-            PackageManager packageManager = CreatePackageManager();
+            PackageManager packageManager = TryCreatePackageManager();
 
             PackageCatalogReference installedSearchCatalogRef;
 
@@ -222,7 +222,7 @@ namespace AppInstallerCaller
             else
             {
                 PackageCatalogReference selectedRemoteCatalogRef = PackageCatalogs[selectedIndex];
-                CreateCompositePackageCatalogOptions createCompositePackageCatalogOptions = CreateCreateCompositePackageCatalogOptions();
+                CreateCompositePackageCatalogOptions createCompositePackageCatalogOptions = TryCreateCreateCompositePackageCatalogOptions();
                 createCompositePackageCatalogOptions.Catalogs.Add(selectedRemoteCatalogRef);
 
                 createCompositePackageCatalogOptions.CompositeSearchBehavior = CompositeSearchBehavior.LocalCatalogs;
@@ -239,7 +239,7 @@ namespace AppInstallerCaller
                 return;
             }
 
-            FindPackagesOptions findPackagesOptions = CreateFindPackagesOptions();
+            FindPackagesOptions findPackagesOptions = TryCreateFindPackagesOptions();
 
             FindPackagesResult findResult = await TryFindPackageInCatalogAsync(installedCatalog, m_installAppId);
             List<MatchResult> matches = findResult.Matches.ToList();
@@ -265,7 +265,7 @@ namespace AppInstallerCaller
             int selectedIndex = catalogsListBox.SelectedIndex;
             await ThreadSwitcher.ResumeBackgroundAsync();
 
-            PackageManager packageManager = CreatePackageManager();
+            PackageManager packageManager = TryCreatePackageManager();
 
             PackageCatalogReference installingSearchCatalogRef = null;
 
@@ -298,7 +298,7 @@ namespace AppInstallerCaller
                 return;
             }
 
-            FindPackagesOptions findPackagesOptions = CreateFindPackagesOptions();
+            FindPackagesOptions findPackagesOptions = TryCreateFindPackagesOptions();
 
             FindPackagesResult findResult = await TryFindPackageInCatalogAsync(selectedRemoteCatalog, m_installAppId);
             List<MatchResult> matches = findResult.Matches.ToList();
@@ -376,9 +376,9 @@ namespace AppInstallerCaller
             // Get the remote catalog
             PackageCatalogReference selectedRemoteCatalogRef = PackageCatalogs[selectedIndex];
             // Create the composite catalog
-            CreateCompositePackageCatalogOptions createCompositePackageCatalogOptions = CreateCreateCompositePackageCatalogOptions();
+            CreateCompositePackageCatalogOptions createCompositePackageCatalogOptions = TryCreateCreateCompositePackageCatalogOptions();
             createCompositePackageCatalogOptions.Catalogs.Add(selectedRemoteCatalogRef);
-            PackageManager packageManager = CreatePackageManager();
+            PackageManager packageManager = TryCreatePackageManager();
             PackageCatalogReference catalogRef = packageManager.CreateCompositePackageCatalog(createCompositePackageCatalogOptions);
             ConnectResult connectResult = await catalogRef.ConnectAsync();
             PackageCatalog compositeCatalog = connectResult.PackageCatalog;
