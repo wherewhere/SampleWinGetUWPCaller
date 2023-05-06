@@ -1,5 +1,4 @@
-﻿using AppInstallerCaller.WinRT;
-using Microsoft.Management.Deployment;
+﻿using Microsoft.Management.Deployment;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -27,15 +26,15 @@ namespace AppInstallerCaller
             InstallingPackages = new ObservableCollection<InstallingPackageView>();
         }
 
-        private PackageManager TryCreatePackageManager() => WinGetProjectionFactory.Instance.TryCreatePackageManager(m_useDev);
+        private PackageManager TryCreatePackageManager() => WinGetProjectionFactory.CreatePackageManager(m_useDev);
 
-        private InstallOptions TryCreateInstallOptions() => WinGetProjectionFactory.Instance.TryCreateInstallOptions(m_useDev);
+        private InstallOptions TryCreateInstallOptions() => WinGetProjectionFactory.TryCreateInstallOptions(m_useDev);
 
-        private FindPackagesOptions TryCreateFindPackagesOptions() => WinGetProjectionFactory.Instance.TryCreateFindPackagesOptions(m_useDev);
+        private FindPackagesOptions TryCreateFindPackagesOptions() => WinGetProjectionFactory.TryCreateFindPackagesOptions(m_useDev);
 
-        private CreateCompositePackageCatalogOptions TryCreateCreateCompositePackageCatalogOptions() => WinGetProjectionFactory.Instance.TryCreateCreateCompositePackageCatalogOptions(m_useDev);
+        private CreateCompositePackageCatalogOptions TryCreateCreateCompositePackageCatalogOptions() => WinGetProjectionFactory.TryCreateCreateCompositePackageCatalogOptions(m_useDev);
 
-        private PackageMatchFilter TryCreatePackageMatchFilter() => WinGetProjectionFactory.Instance.TryCreatePackageMatchFilter(m_useDev);
+        private PackageMatchFilter TryCreatePackageMatchFilter() => WinGetProjectionFactory.TryCreatePackageMatchFilter(m_useDev);
 
         private async Task<PackageCatalog> FindSourceAsync(string packageSource)
         {

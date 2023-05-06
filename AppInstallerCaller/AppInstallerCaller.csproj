@@ -134,6 +134,7 @@
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ThreadSwitcher.cs" />
+    <Compile Include="WinGetProjectionFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">
@@ -170,12 +171,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\WinMD\Microsoft.Management.Deployment.winmd</HintPath>
     </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\AppInstallerCaller.WinRT\AppInstallerCaller.WinRT.vcxproj">
-      <Project>{4c28d187-fc4c-4d2d-b85a-a80fc7545027}</Project>
-      <Name>AppInstallerCaller.WinRT</Name>
-    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
