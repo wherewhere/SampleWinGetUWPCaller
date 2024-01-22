@@ -118,7 +118,7 @@
                 x:Name="installedListBox"
                 Height="300"
                 ItemsSource="{x:Bind InstalledApps}"
-                ScrollViewer.VerticalScrollBarVisibility="Visible">
+                ScrollViewer.VerticalScrollMode="Auto">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="deployment:CatalogPackage">
                         <TextBlock Text="{x:Bind Name}" />

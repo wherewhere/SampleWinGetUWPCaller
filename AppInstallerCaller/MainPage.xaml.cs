@@ -1,4 +1,5 @@
-﻿using Microsoft.Management.Deployment;
+﻿using AppInstallerCaller.WinRT;
+using Microsoft.Management.Deployment;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -21,9 +22,9 @@ namespace AppInstallerCaller
         public MainPage()
         {
             InitializeComponent();
-            PackageCatalogs = new ObservableCollection<PackageCatalogReference>();
-            InstalledApps = new ObservableCollection<CatalogPackage>();
-            InstallingPackages = new ObservableCollection<InstallingPackageView>();
+            PackageCatalogs = [];
+            InstalledApps = [];
+            InstallingPackages = [];
         }
 
         private PackageManager TryCreatePackageManager() => WinGetProjectionFactory.CreatePackageManager(m_useDev);
@@ -474,9 +475,7 @@ namespace AppInstallerCaller
         }
 
         internal ObservableCollection<PackageCatalogReference> PackageCatalogs { get; }
-
         internal ObservableCollection<CatalogPackage> InstalledApps { get; }
-
         internal ObservableCollection<InstallingPackageView> InstallingPackages { get; }
 
         private IAsyncOperationWithProgress<InstallResult, InstallProgress> m_installPackageOperation;
