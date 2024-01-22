@@ -72,7 +72,7 @@ namespace AppInstallerCaller
             findPackagesOptions.Filters.Add(filter);
             FindPackagesResult findPackagesResult = await catalog.FindPackagesAsync(findPackagesOptions);
 
-            List<MatchResult> matches = findPackagesResult.Matches.ToList();
+            VectorViewReader<MatchResult> matches = findPackagesResult.Matches.AsReader();
             return matches.Count == 0 ? null : matches.FirstOrDefault().CatalogPackage;
         }
 
@@ -191,7 +191,7 @@ namespace AppInstallerCaller
             await ThreadSwitcher.ResumeBackgroundAsync();
 
             PackageManager packageManager = TryCreatePackageManager();
-            List<PackageCatalogReference> catalogs = packageManager.GetPackageCatalogs().ToList();
+            VectorViewReader<PackageCatalogReference> catalogs = packageManager.GetPackageCatalogs().AsReader();
             PackageCatalogReference storeCatalog = packageManager.GetPredefinedPackageCatalog(PredefinedPackageCatalog.MicrosoftStore);
 
             await button.Dispatcher.ResumeForegroundAsync();
@@ -239,10 +239,8 @@ namespace AppInstallerCaller
                 return;
             }
 
-            FindPackagesOptions findPackagesOptions = TryCreateFindPackagesOptions();
-
             FindPackagesResult findResult = await TryFindPackageInCatalogAsync(installedCatalog, m_installAppId);
-            List<MatchResult> matches = findResult.Matches.ToList();
+            var matches = findResult.Matches.AsReader();
 
             await statusText.Dispatcher.ResumeForegroundAsync();
             InstalledApps.Clear();
@@ -267,7 +265,7 @@ namespace AppInstallerCaller
 
             PackageManager packageManager = TryCreatePackageManager();
 
-            PackageCatalogReference installingSearchCatalogRef = null;
+            PackageCatalogReference installingSearchCatalogRef;
 
             if (selectedIndex < 0)
             {
@@ -298,10 +296,8 @@ namespace AppInstallerCaller
                 return;
             }
 
-            FindPackagesOptions findPackagesOptions = TryCreateFindPackagesOptions();
-
             FindPackagesResult findResult = await TryFindPackageInCatalogAsync(selectedRemoteCatalog, m_installAppId);
-            List<MatchResult> matches = findResult.Matches.ToList();
+            VectorViewReader<MatchResult> matches = findResult.Matches.AsReader();
 
             await statusText.Dispatcher.ResumeForegroundAsync();
 
@@ -352,7 +348,7 @@ namespace AppInstallerCaller
                 return;
             }
             FindPackagesResult findPackagesResult = await TryFindPackageInCatalogAsync(selectedRemoteCatalog, m_installAppId);
-            List<MatchResult> matches = findPackagesResult.Matches.ToList();
+            VectorViewReader<MatchResult> matches = findPackagesResult.Matches.AsReader();
             if (matches.Count > 0)
             {
                 m_installPackageOperation = InstallPackage(matches.FirstOrDefault().CatalogPackage);
@@ -393,7 +389,7 @@ namespace AppInstallerCaller
             // Do the search.
             FindPackagesResult findPackagesResult = await TryFindPackageInCatalogAsync(compositeCatalog, m_installAppId);
 
-            List<MatchResult> matches = findPackagesResult.Matches.ToList();
+            VectorViewReader<MatchResult> matches = findPackagesResult.Matches.AsReader();
             if (matches.Count > 0)
             {
                 PackageVersionInfo installedVersion = matches.FirstOrDefault().CatalogPackage.InstalledVersion;

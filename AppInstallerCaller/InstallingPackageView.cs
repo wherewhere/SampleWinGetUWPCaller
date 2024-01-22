@@ -5,7 +5,7 @@ using Windows.UI.Core;
 
 namespace AppInstallerCaller
 {
-    internal class InstallingPackageView : INotifyPropertyChanged
+    public class InstallingPackageView : INotifyPropertyChanged
     {
         public CatalogPackage Package { get; set; }
 
