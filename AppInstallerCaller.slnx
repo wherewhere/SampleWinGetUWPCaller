@@ -1,0 +1,16 @@
+<Solution>
+  <Configurations>
+    <Platform Name="ARM" />
+    <Platform Name="ARM64" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="AppInstallerCaller.WinRT/AppInstallerCaller.WinRT.vcxproj" Id="4c28d187-fc4c-4d2d-b85a-a80fc7545027" />
+  <Project Path="AppInstallerCaller/AppInstallerCaller.csproj" Id="32c8637e-51f2-4d33-b627-077e831f6c01">
+    <Platform Solution="*|ARM" Project="ARM" />
+    <Platform Solution="*|ARM64" Project="ARM64" />
+    <Platform Solution="*|x64" Project="x64" />
+    <Platform Solution="*|x86" Project="x86" />
+    <Deploy />
+  </Project>
+</Solution>

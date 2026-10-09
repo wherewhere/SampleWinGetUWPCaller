@@ -10,22 +10,22 @@ namespace winrt::AppInstallerCaller::WinRT::implementation
 {
     struct WinGetProjectionFactory : WinGetProjectionFactoryT<WinGetProjectionFactory>
     {
-        static PackageManager CreatePackageManager(bool useDev);
-        static FindPackagesOptions CreateFindPackagesOptions(bool useDev);
-        static CreateCompositePackageCatalogOptions CreateCreateCompositePackageCatalogOptions(bool useDev);
-        static InstallOptions CreateInstallOptions(bool useDev);
-        static UninstallOptions CreateUninstallOptions(bool useDev);
-        static PackageMatchFilter CreatePackageMatchFilter(bool useDev);
-        static DownloadOptions CreateDownloadOptions(bool useDev);
+        static PackageManager CreatePackageManager(const bool useDev);
+        static FindPackagesOptions CreateFindPackagesOptions(const bool useDev);
+        static CreateCompositePackageCatalogOptions CreateCreateCompositePackageCatalogOptions(const bool useDev);
+        static InstallOptions CreateInstallOptions(const bool useDev);
+        static UninstallOptions CreateUninstallOptions(const bool useDev);
+        static PackageMatchFilter CreatePackageMatchFilter(const bool useDev);
+        static DownloadOptions CreateDownloadOptions(const bool useDev);
         static PackageManagerSettings CreatePackageManagerSettings();
 
-        static PackageManager TryCreatePackageManager(bool useDev);
-        static FindPackagesOptions TryCreateFindPackagesOptions(bool useDev);
-        static CreateCompositePackageCatalogOptions TryCreateCreateCompositePackageCatalogOptions(bool useDev);
-        static InstallOptions TryCreateInstallOptions(bool useDev);
-        static UninstallOptions TryCreateUninstallOptions(bool useDev);
-        static PackageMatchFilter TryCreatePackageMatchFilter(bool useDev);
-        static DownloadOptions TryCreateDownloadOptions(bool useDev);
+        static PackageManager TryCreatePackageManager(const bool useDev);
+        static FindPackagesOptions TryCreateFindPackagesOptions(const bool useDev);
+        static CreateCompositePackageCatalogOptions TryCreateCreateCompositePackageCatalogOptions(const bool useDev);
+        static InstallOptions TryCreateInstallOptions(const bool useDev);
+        static UninstallOptions TryCreateUninstallOptions(const bool useDev);
+        static PackageMatchFilter TryCreatePackageMatchFilter(const bool useDev);
+        static DownloadOptions TryCreateDownloadOptions(const bool useDev);
         static PackageManagerSettings TryCreatePackageManagerSettings();
     };
 }

@@ -2,9 +2,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using Windows.Foundation.Metadata;
 using Windows.System.Threading;
-using Windows.System;
 using Windows.UI.Core;
 using ThreadPool = Windows.System.Threading.ThreadPool;
 
@@ -33,12 +31,25 @@ namespace AppInstallerCaller
     }
 
     /// <summary>
+    /// The interface of helper type for switch thread.
+    /// </summary>
+    /// <typeparam name="T">The type of the result of <see cref="GetAwaiter"/>.</typeparam>
+    public interface IThreadSwitcher<out T> : IThreadSwitcher where T : IThreadSwitcher
+    {
+        /// <summary>
+        /// Gets an awaiter used to await <typeparamref name="T"/>.
+        /// </summary>
+        /// <returns>A <typeparamref name="T"/> awaiter instance.</returns>
+        new T GetAwaiter();
+    }
+
+    /// <summary>
     /// A helper type for switch thread by <see cref="CoreDispatcher"/>. This type is not intended to be used directly from your code.
     /// </summary>
     /// <param name="dispatcher">A <see cref="CoreDispatcher"/> whose foreground thread to switch execution to.</param>
     /// <param name="priority">Specifies the priority for event dispatch.</param>
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public readonly struct CoreDispatcherThreadSwitcher(CoreDispatcher dispatcher, CoreDispatcherPriority priority = CoreDispatcherPriority.Normal) : IThreadSwitcher
+    public readonly struct CoreDispatcherThreadSwitcher(CoreDispatcher dispatcher, CoreDispatcherPriority priority = CoreDispatcherPriority.Normal) : IThreadSwitcher<CoreDispatcherThreadSwitcher>
     {
         /// <inheritdoc/>
         public bool IsCompleted => dispatcher?.HasThreadAccess != false;
@@ -46,45 +57,14 @@ namespace AppInstallerCaller
         /// <inheritdoc/>
         public void GetResult() { }
 
-        /// <summary>
-        /// Gets an awaiter used to await this <see cref="CoreDispatcherThreadSwitcher"/>.
-        /// </summary>
-        /// <returns>An awaiter instance.</returns>
+        /// <inheritdoc/>
         public CoreDispatcherThreadSwitcher GetAwaiter() => this;
 
         /// <inheritdoc/>
         IThreadSwitcher IThreadSwitcher.GetAwaiter() => this;
 
         /// <inheritdoc/>
-        public void OnCompleted(Action continuation) => _ = dispatcher.RunAsync(priority, () => continuation());
-    }
-
-    /// <summary>
-    /// A helper type for switch thread by <see cref="DispatcherQueue"/>. This type is not intended to be used directly from your code.
-    /// </summary>
-    /// <param name="dispatcher">A <see cref="DispatcherQueue"/> whose foreground thread to switch execution to.</param>
-    /// <param name="priority">Specifies the priority for event dispatch.</param>
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    public readonly struct DispatcherQueueThreadSwitcher(DispatcherQueue dispatcher, DispatcherQueuePriority priority = DispatcherQueuePriority.Normal) : IThreadSwitcher
-    {
-        /// <inheritdoc/>
-        public bool IsCompleted => dispatcher is not DispatcherQueue _dispatcher
-            || (ThreadSwitcher.IsHasThreadAccessPropertyAvailable && _dispatcher.HasThreadAccess);
-
-        /// <inheritdoc/>
-        public void GetResult() { }
-
-        /// <summary>
-        /// Gets an awaiter used to await this <see cref="DispatcherQueueThreadSwitcher"/>.
-        /// </summary>
-        /// <returns>An awaiter instance.</returns>
-        public DispatcherQueueThreadSwitcher GetAwaiter() => this;
-
-        /// <inheritdoc/>
-        IThreadSwitcher IThreadSwitcher.GetAwaiter() => this;
-
-        /// <inheritdoc/>
-        public void OnCompleted(Action continuation) => _ = dispatcher.TryEnqueue(priority, () => continuation());
+        public void OnCompleted(Action continuation) => _ = dispatcher.RunAsync(priority, continuation.Invoke);
     }
 
     /// <summary>
@@ -92,7 +72,7 @@ namespace AppInstallerCaller
     /// </summary>
     /// <param name="priority">Specifies the priority for event dispatch.</param>
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public readonly struct ThreadPoolThreadSwitcher(WorkItemPriority priority = WorkItemPriority.Normal) : IThreadSwitcher
+    public readonly struct ThreadPoolThreadSwitcher(WorkItemPriority priority = WorkItemPriority.Normal) : IThreadSwitcher<ThreadPoolThreadSwitcher>
     {
         /// <inheritdoc/>
         public bool IsCompleted => SynchronizationContext.Current == null;
@@ -100,10 +80,7 @@ namespace AppInstallerCaller
         /// <inheritdoc/>
         public void GetResult() { }
 
-        /// <summary>
-        /// Gets an awaiter used to await this <see cref="ThreadPoolThreadSwitcher"/>.
-        /// </summary>
-        /// <returns>An awaiter instance.</returns>
+        /// <inheritdoc/>
         public ThreadPoolThreadSwitcher GetAwaiter() => this;
 
         /// <inheritdoc/>
@@ -118,19 +95,6 @@ namespace AppInstallerCaller
     /// </summary>
     public static class ThreadSwitcher
     {
-        /// <summary>
-        /// Gets is <see cref="DispatcherQueue.HasThreadAccess"/> supported.
-        /// </summary>
-        public static bool IsHasThreadAccessPropertyAvailable { get; } = ApiInformation.IsMethodPresent("Windows.System.DispatcherQueue", "HasThreadAccess");
-
-        /// <summary>
-        /// A helper function—for use within a coroutine—that you can <see langword="await"/> to switch execution to a specific foreground thread. 
-        /// </summary>
-        /// <param name="dispatcher">A <see cref="DispatcherQueue"/> whose foreground thread to switch execution to.</param>
-        /// <param name="priority">Specifies the priority for event dispatch.</param>
-        /// <returns>An object that you can <see langword="await"/>.</returns>
-        public static DispatcherQueueThreadSwitcher ResumeForegroundAsync(this DispatcherQueue dispatcher, DispatcherQueuePriority priority = DispatcherQueuePriority.Normal) => new(dispatcher, priority);
-
         /// <summary>
         /// A helper function—for use within a coroutine—that you can <see langword="await"/> to switch execution to a specific foreground thread. 
         /// </summary>

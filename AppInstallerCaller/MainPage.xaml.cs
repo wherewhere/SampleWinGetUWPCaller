@@ -1,7 +1,6 @@
 ﻿using AppInstallerCaller.WinRT;
 using Microsoft.Management.Deployment;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
@@ -240,7 +239,7 @@ namespace AppInstallerCaller
             }
 
             FindPackagesResult findResult = await TryFindPackageInCatalogAsync(installedCatalog, m_installAppId);
-            var matches = findResult.Matches.AsReader();
+            VectorViewReader<MatchResult> matches = findResult.Matches.AsReader();
 
             await statusText.Dispatcher.ResumeForegroundAsync();
             InstalledApps.Clear();
@@ -304,10 +303,7 @@ namespace AppInstallerCaller
             InstallingPackages.Clear();
             foreach (MatchResult match in matches)
             {
-                InstallingPackageView installingView = new()
-                {
-                    Package = match.CatalogPackage
-                };
+                InstallingPackageView installingView = new(match.CatalogPackage, Dispatcher);
                 IAsyncOperationWithProgress<InstallResult, InstallProgress> installOperation = packageManager.GetInstallProgress(installingView.Package, selectedRemoteCatalog.Info);
                 if (installOperation != null)
                 {
