@@ -8,24 +8,16 @@ namespace AppInstallerCaller.WinRT
         static Microsoft.Management.Deployment.FindPackagesOptions CreateFindPackagesOptions(Boolean useDev);
         static Microsoft.Management.Deployment.CreateCompositePackageCatalogOptions CreateCreateCompositePackageCatalogOptions(Boolean useDev);
         static Microsoft.Management.Deployment.InstallOptions CreateInstallOptions(Boolean useDev);
-        [contract(Microsoft.Management.Deployment.WindowsPackageManagerContract, 4)]
-        static Microsoft.Management.Deployment.UninstallOptions CreateUninstallOptions(Boolean useDev);
         static Microsoft.Management.Deployment.PackageMatchFilter CreatePackageMatchFilter(Boolean useDev);
         [contract(Microsoft.Management.Deployment.WindowsPackageManagerContract, 7)]
         static Microsoft.Management.Deployment.DownloadOptions CreateDownloadOptions(Boolean useDev);
-        [contract(Microsoft.Management.Deployment.WindowsPackageManagerContract, 4)]
-        static Microsoft.Management.Deployment.PackageManagerSettings CreatePackageManagerSettings();
 
         static Microsoft.Management.Deployment.PackageManager TryCreatePackageManager(Boolean useDev);
         static Microsoft.Management.Deployment.FindPackagesOptions TryCreateFindPackagesOptions(Boolean useDev);
         static Microsoft.Management.Deployment.CreateCompositePackageCatalogOptions TryCreateCreateCompositePackageCatalogOptions(Boolean useDev);
         static Microsoft.Management.Deployment.InstallOptions TryCreateInstallOptions(Boolean useDev);
-        [contract(Microsoft.Management.Deployment.WindowsPackageManagerContract, 4)]
-        static Microsoft.Management.Deployment.UninstallOptions TryCreateUninstallOptions(Boolean useDev);
         static Microsoft.Management.Deployment.PackageMatchFilter TryCreatePackageMatchFilter(Boolean useDev);
         [contract(Microsoft.Management.Deployment.WindowsPackageManagerContract, 7)]
         static Microsoft.Management.Deployment.DownloadOptions TryCreateDownloadOptions(Boolean useDev);
-        [contract(Microsoft.Management.Deployment.WindowsPackageManagerContract, 4)]
-        static Microsoft.Management.Deployment.PackageManagerSettings TryCreatePackageManagerSettings();
     }
 }

@@ -36,6 +36,8 @@ namespace AppInstallerCaller
 
         private PackageMatchFilter TryCreatePackageMatchFilter() => WinGetProjectionFactory.TryCreatePackageMatchFilter(m_useDev);
 
+        private DownloadOptions TryCreateDownloadOptions() => WinGetProjectionFactory.TryCreateDownloadOptions(m_useDev);
+
         private async Task<PackageCatalog> FindSourceAsync(string packageSource)
         {
             PackageManager packageManager = TryCreatePackageManager();
@@ -87,6 +89,19 @@ namespace AppInstallerCaller
             return packageManager.InstallPackageAsync(package, installOptions);
         }
 
+        private IAsyncOperationWithProgress<DownloadResult, PackageDownloadProgress> DownloadPackage(CatalogPackage package, string downloadDirectory)
+        {
+            PackageManager packageManager = TryCreatePackageManager();
+            DownloadOptions downloadOptions = TryCreateDownloadOptions();
+
+            if (!string.IsNullOrEmpty(downloadDirectory))
+            {
+                downloadOptions.DownloadDirectory = downloadDirectory;
+            }
+
+            return packageManager.DownloadPackageAsync(package, downloadOptions);
+        }
+
         private async void UpdateUIProgress(InstallProgress progress, ProgressBar progressBar, TextBlock statusText)
         {
             await progressBar.Dispatcher.ResumeForegroundAsync();
@@ -119,13 +134,35 @@ namespace AppInstallerCaller
             }
         }
 
+        private async void UpdateUIDownloadProgress(PackageDownloadProgress progress, ProgressBar progressBar, TextBlock statusText)
+        {
+            await progressBar.Dispatcher.ResumeForegroundAsync();
+            progressBar.Value = progress.DownloadProgress * 100;
+
+            string downloadText = "Downloading. ";
+            switch (progress.State)
+            {
+                case PackageDownloadProgressState.Queued:
+                    statusText.Text = "Queued";
+                    break;
+                case PackageDownloadProgressState.Downloading:
+                    downloadText += Convert.ToString(progress.BytesDownloaded) + " bytes of " + Convert.ToString(progress.BytesRequired);
+                    statusText.Text = downloadText;
+                    break;
+                case PackageDownloadProgressState.Finished:
+                    statusText.Text = "Finished download.";
+                    progressBar.IsIndeterminate = false;
+                    break;
+                default:
+                    statusText.Text = "";
+                    break;
+            }
+        }
+
         // This method is called from a background thread.
         private async void UpdateUIForInstall(IAsyncOperationWithProgress<InstallResult, InstallProgress> installPackageOperation, Button installButton, Button cancelButton, ProgressBar progressBar, TextBlock statusText)
         {
-            installPackageOperation.Progress += (UnnamedParameter, progress) =>
-            {
-                UpdateUIProgress(progress, progressBar, statusText);
-            };
+            installPackageOperation.Progress += (_, progress) => UpdateUIProgress(progress, progressBar, statusText);
 
             long installOperationHr = 0L;
             string errorMessage = "Unknown Error";
@@ -181,6 +218,64 @@ namespace AppInstallerCaller
                 string failText;
                 failText = "Install failed: " + installResult.ExtendedErrorCode + " [" + installResult.InstallerErrorCode + "]";
                 installButton.Content = "Install";
+                statusText.Text = failText;
+            }
+        }
+
+        // This method is called from a background thread.
+        private async void UpdateUIForDownload(IAsyncOperationWithProgress<DownloadResult, PackageDownloadProgress> operation, Button downloadButton, Button cancelButton, ProgressBar progressBar, TextBlock statusText)
+        {
+            operation.Progress += (_, progress) => UpdateUIDownloadProgress(progress, progressBar, statusText);
+
+            long downloadOperationHr = 0L;
+            string errorMessage = "Unknown Error";
+            DownloadResult downloadResult = null;
+            try
+            {
+                downloadResult = await operation;
+            }
+            catch (OperationCanceledException)
+            {
+                errorMessage = "Cancelled";
+                Debug.WriteLine("Operation was cancelled");
+            }
+            catch (Exception ex)
+            {
+                // Operation failed
+                // Example: HRESULT_FROM_WIN32(ERROR_DISK_FULL).
+                downloadOperationHr = ex.HResult;
+                // Example: "There is not enough space on the disk."
+                errorMessage = ex.Message;
+                Debug.WriteLine("Operation failed");
+            }
+
+            // Switch back to ui thread context.
+            await progressBar.Dispatcher.ResumeForegroundAsync();
+
+            cancelButton.IsEnabled = (false);
+            downloadButton.IsEnabled = (true);
+            progressBar.IsIndeterminate = (false);
+
+            if (operation.Status == AsyncStatus.Canceled)
+            {
+                downloadButton.Content = "Retry";
+                statusText.Text = "Download cancelled.";
+            }
+            if (operation.Status == AsyncStatus.Error || downloadResult == null)
+            {
+                downloadButton.Content = "Retry";
+                statusText.Text = errorMessage;
+            }
+            else if (downloadResult.Status == DownloadResultStatus.Ok)
+            {
+                downloadButton.Content = "Download";
+                statusText.Text = "Finished.";
+            }
+            else
+            {
+                string failText;
+                failText = "Download failed: " + downloadResult.ExtendedErrorCode;
+                downloadButton.Content = "Download";
                 statusText.Text = failText;
             }
         }
@@ -352,7 +447,42 @@ namespace AppInstallerCaller
             }
         }
 
-        private async void FindPackage(Button installButton, ProgressBar progressBar, TextBlock statusText)
+        private async void StartDownload(Button button,Button cancelButton,ProgressBar progressBar,TextBlock statusText)
+        {
+            button.IsEnabled = (false);
+            cancelButton.IsEnabled = (true);
+            int selectedIndex = catalogsListBox.SelectedIndex;
+
+            await ThreadSwitcher.ResumeBackgroundAsync();
+
+            if (selectedIndex < 0)
+            {
+                await installButton.Dispatcher.ResumeForegroundAsync();
+                button.IsEnabled = (false);
+                statusText.Text = "No catalog selected to download.";
+                return;
+            }
+
+            // Get the remote catalog
+            PackageCatalogReference selectedRemoteCatalogRef = PackageCatalogs[selectedIndex];
+            ConnectResult remoteConnectResult = await selectedRemoteCatalogRef.ConnectAsync();
+            PackageCatalog selectedRemoteCatalog = remoteConnectResult.PackageCatalog;
+            if (selectedRemoteCatalog == null)
+            {
+                await progressBar.Dispatcher.ResumeForegroundAsync();
+                statusText.Text = "Connecting to catalog failed.";
+                return;
+            }
+            FindPackagesResult findPackagesResult = await TryFindPackageInCatalogAsync(selectedRemoteCatalog, m_installAppId);
+            VectorViewReader<MatchResult> matches = findPackagesResult.Matches.AsReader();
+            if (matches.Count > 0)
+            {
+                m_downloadPackageOperation = DownloadPackage(matches.FirstOrDefault().CatalogPackage, m_downloadDirectory);
+                UpdateUIForDownload(m_downloadPackageOperation, button, cancelButton, progressBar, statusText);
+            }
+        }
+
+        private async void FindPackage(Button installButton, Button downloadButton, ProgressBar progressBar, TextBlock statusText)
         {
             int selectedIndex = catalogsListBox.SelectedIndex;
             if (selectedIndex < 0)
@@ -399,7 +529,8 @@ namespace AppInstallerCaller
                 {
                     await installButton.Dispatcher.ResumeForegroundAsync();
                     installButton.IsEnabled = true;
-                    statusText.Text = "Found the package to install.";
+                    downloadButton.IsEnabled = true;
+                    statusText.Text = "Found the package to install or download.";
                 }
             }
             else
@@ -411,16 +542,16 @@ namespace AppInstallerCaller
             return;
         }
 
-        private void SearchButtonClickHandler(object UnnamedParameter, RoutedEventArgs UnnamedParameter2)
+        private void SearchButtonClickHandler(object _, RoutedEventArgs __)
         {
             m_installAppId = catalogIdTextBox.Text;
             installButton.IsEnabled = false;
             cancelButton.IsEnabled = false;
             installStatusText.Text = "Looking for package.";
-            FindPackage(installButton, installProgressBar, installStatusText);
+            FindPackage(installButton, downloadButton, installProgressBar, installStatusText);
         }
 
-        private void InstallButtonClickHandler(object UnnamedParameter, RoutedEventArgs UnnamedParameter2)
+        private void InstallButtonClickHandler(object _, RoutedEventArgs __)
         {
             if (m_installPackageOperation == null || m_installPackageOperation.Status != AsyncStatus.Started)
             {
@@ -428,7 +559,7 @@ namespace AppInstallerCaller
             }
         }
 
-        private void CancelButtonClickHandler(object UnnamedParameter, RoutedEventArgs UnnamedParameter2)
+        private void CancelButtonClickHandler(object _, RoutedEventArgs __)
         {
             if (m_installPackageOperation != null && m_installPackageOperation.Status == AsyncStatus.Started)
             {
@@ -436,32 +567,50 @@ namespace AppInstallerCaller
             }
         }
 
-        private void RefreshInstalledButtonClickHandler(object UnnamedParameter, RoutedEventArgs UnnamedParameter2)
+        void DownloadButtonClickHandler(object _, RoutedEventArgs __)
+        {
+            m_downloadDirectory = downloadDirectoryTextBox.Text;
+
+            if (m_downloadPackageOperation == null || m_downloadPackageOperation.Status != AsyncStatus.Started)
+            {
+                StartDownload(downloadButton, downloadCancelButton, downloadProgressBar, downloadStatusText);
+            }
+        }
+
+        void DownloadCancelButtonClickHandler(object _, RoutedEventArgs __)
+        {
+            if (m_downloadPackageOperation != null && m_downloadPackageOperation.Status == AsyncStatus.Started)
+            {
+                m_downloadPackageOperation.Cancel();
+            }
+        }
+
+        private void RefreshInstalledButtonClickHandler(object _, RoutedEventArgs __)
         {
             GetInstalledPackages(installedStatusText);
         }
 
-        private void ClearInstalledButtonClickHandler(object UnnamedParameter, RoutedEventArgs UnnamedParameter2)
+        private void ClearInstalledButtonClickHandler(object _, RoutedEventArgs __)
         {
             InstalledApps.Clear();
         }
 
-        private void RefreshInstallingButtonClickHandler(object UnnamedParameter, RoutedEventArgs UnnamedParameter2)
+        private void RefreshInstallingButtonClickHandler(object _, RoutedEventArgs __)
         {
             GetInstallingPackages(installingStatusText);
         }
 
-        private void ClearInstallingButtonClickHandler(object UnnamedParameter, RoutedEventArgs UnnamedParameter2)
+        private void ClearInstallingButtonClickHandler(object _, RoutedEventArgs __)
         {
             InstallingPackages.Clear();
         }
 
-        private void ToggleDevSwitchToggled(object UnnamedParameter, RoutedEventArgs UnnamedParameter2)
+        private void ToggleDevSwitchToggled(object _, RoutedEventArgs __)
         {
             m_useDev = toggleDevSwitch.IsOn;
         }
 
-        private void FindSourcesButtonClickHandler(object UnnamedParameter, RoutedEventArgs UnnamedParameter2)
+        private void FindSourcesButtonClickHandler(object _, RoutedEventArgs __)
         {
             GetSources(installButton);
         }
@@ -470,8 +619,10 @@ namespace AppInstallerCaller
         internal ObservableCollection<CatalogPackage> InstalledApps { get; }
         internal ObservableCollection<InstallingPackageView> InstallingPackages { get; }
 
-        private IAsyncOperationWithProgress<InstallResult, InstallProgress> m_installPackageOperation;
-        private string m_installAppId = string.Empty;
+        private IAsyncOperationWithProgress<InstallResult, InstallProgress> m_installPackageOperation; 
+        private IAsyncOperationWithProgress<DownloadResult, PackageDownloadProgress> m_downloadPackageOperation;
+        private string m_installAppId;
+        private string m_downloadDirectory;
         private bool m_useDev = false;
     }
 }
